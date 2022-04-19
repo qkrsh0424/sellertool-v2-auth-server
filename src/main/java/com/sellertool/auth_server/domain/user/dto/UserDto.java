@@ -1,14 +1,8 @@
-package com.sellertool.auth_server.domain.user.vo;
+package com.sellertool.auth_server.domain.user.dto;
 
 import com.sellertool.auth_server.domain.user.entity.UserEntity;
 import lombok.*;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -17,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserVo {
+public class UserDto {
     private UUID id;
     private String username;
     private String email;
@@ -26,8 +20,8 @@ public class UserVo {
     private String name;
     private String phoneNumber;
 
-    public static UserVo toVo(UserEntity entity) {
-        UserVo vo = UserVo.builder()
+    public static UserDto toDto(UserEntity entity) {
+        UserDto dto = UserDto.builder()
                 .id(entity.getId())
                 .username(entity.getUsername())
                 .email(entity.getEmail())
@@ -36,6 +30,6 @@ public class UserVo {
                 .phoneNumber(entity.getPhoneNumber())
                 .roles(entity.getRoles())
                 .build();
-        return vo;
+        return dto;
     }
 }

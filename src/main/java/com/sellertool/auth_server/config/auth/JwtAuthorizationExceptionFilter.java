@@ -21,6 +21,7 @@ public class JwtAuthorizationExceptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (AuthorizationAccessDeniedException e) {
             errorResponse(response, HttpStatus.UNAUTHORIZED, "auth_failed", e.getMessage());
+            return;
         }
     }
 

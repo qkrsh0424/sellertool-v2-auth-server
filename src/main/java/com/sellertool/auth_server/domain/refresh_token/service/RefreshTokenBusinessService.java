@@ -103,9 +103,12 @@ public class RefreshTokenBusinessService {
 
             try {
                 refreshTokenClaims = Jwts.parser().setSigningKey(refreshTokenSecret).parseClaimsJws(refreshTokenEntity.getRefreshToken()).getBody();
+            }
+            catch (ExpiredJwtException e){
+                throw new InvalidUserAuthException("토큰이 만료 되었습니다.");
             } catch (Exception e) {
 //                    리프레시 토큰이 유효하지 않다면 401 return
-                throw new AuthorizationAccessDeniedException("토큰이 만료 되었습니다.");
+                throw new InvalidUserAuthException("토큰이 만료 되었습니다.");
             }
 
             UUID id = UUID.fromString(refreshTokenClaims.get("id").toString());

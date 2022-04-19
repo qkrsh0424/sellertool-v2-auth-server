@@ -46,7 +46,7 @@ public class CsrfAuthenticationFilter extends OncePerRequestFilter {
         } else {
             try {
 //            일종의 저장소
-                Cookie csrfJwt = WebUtils.getCookie(request, "csrf_jwt");
+                Cookie csrfJwt = WebUtils.getCookie(request, "auth_csrf_jwt");
 
                 String csrfJwtToken = csrfJwt.getValue();
 //            실제 CSRF 토큰 값

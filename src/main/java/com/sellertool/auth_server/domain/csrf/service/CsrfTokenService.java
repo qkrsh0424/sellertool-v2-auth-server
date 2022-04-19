@@ -25,7 +25,7 @@ public class CsrfTokenService {
         String csrfTokenId = UUID.randomUUID().toString();
         String csrfJwtToken = CsrfTokenUtils.getCsrfJwtToken(csrfTokenId);
 
-        ResponseCookie csrfJwt = ResponseCookie.from("csrf_jwt", csrfJwtToken)
+        ResponseCookie csrfJwt = ResponseCookie.from("auth_csrf_jwt", csrfJwtToken)
             .httpOnly(true)
             .domain(CustomCookieInterface.COOKIE_DOMAIN)
             .secure(CustomCookieInterface.SECURE)
@@ -34,7 +34,7 @@ public class CsrfTokenService {
             .maxAge(CustomCookieInterface.CSRF_TOKEN_COOKIE_EXPIRATION)
             .build();
 
-        ResponseCookie csrfToken = ResponseCookie.from("csrf_token", csrfTokenId)
+        ResponseCookie csrfToken = ResponseCookie.from("auth_csrf", csrfTokenId)
                 .secure(CustomCookieInterface.SECURE)
                 .domain(CustomCookieInterface.COOKIE_DOMAIN)
                 .sameSite("Strict")
