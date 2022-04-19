@@ -55,4 +55,15 @@ public class UserApiV1 {
 
         return new ResponseEntity<>(message, message.getStatus());
     }
+
+    @PatchMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, Object> password){
+        Message message = new Message();
+
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+        userBusinessService.changePassword(password);
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
 }
