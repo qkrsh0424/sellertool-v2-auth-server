@@ -128,8 +128,13 @@ public class UserBusinessService {
         boolean isContainNumbers = Pattern.compile("[0-9]").matcher(newPassword).find();
         boolean isContainAlphabets = Pattern.compile("[a-z]").matcher(newPassword).find();
         boolean isContainSymbols = Pattern.compile("[!@#$%^&*()\\-_=+\\\\\\/\\[\\]{};:\\`\"',.<>\\/?\\|~]").matcher(newPassword).find();
+
         if(!isContainNumbers || !isContainAlphabets || !isContainSymbols){
-            throw new NotMatchedFormatException("새 비밀번호 형식을 확인해 주세요.");
+            throw new NotMatchedFormatException("새 비밀번호 형식을 확인해 주세요. (문자, 숫자, 특수문자가 반드시 포함되어야 합니다.)");
+        }
+
+        if(newPassword.length() < 8 || newPassword.length() > 20){
+            throw new NotMatchedFormatException("새 비밀번호 형식을 확인해 주세요. (비밀번호 길이가 맞지 않습니다.)");
         }
 
         /*
