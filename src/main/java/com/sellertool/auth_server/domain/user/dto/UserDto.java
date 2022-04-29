@@ -3,6 +3,8 @@ package com.sellertool.auth_server.domain.user.dto;
 import com.sellertool.auth_server.domain.user.entity.UserEntity;
 import lombok.*;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Getter
@@ -12,12 +14,24 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class UserDto {
+    @NotBlank
     private UUID id;
+
+    @NotBlank
     private String username;
-    private String email;
+
+    @NotBlank
     private String nickname;
+
+    @NotBlank
     private String roles;
+
     private String name;
+
+    @NotBlank
+    private String email;
+
+    @NotBlank
     private String phoneNumber;
 
     public static UserDto toDto(UserEntity entity) {

@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/auth/v1/signup")
 public class SignupApiV1 {
@@ -21,10 +25,10 @@ public class SignupApiV1 {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> signup(@RequestBody SignupDto signupDto) {
+    public ResponseEntity<?> signup(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid SignupDto signupDto) {
         Message message = new Message();
 
-        signupBusinessService.signup(signupDto);
+        signupBusinessService.signup(request, response, signupDto);
 
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");

@@ -1,68 +1,50 @@
 package com.sellertool.auth_server.domain.exception.controller;
 
-import com.sellertool.auth_server.domain.exception.dto.*;
 import com.sellertool.auth_server.domain.message.dto.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.io.FileNotFoundException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandlerController {
-    @ExceptionHandler(value = {AccessDeniedPermissionException.class})
-    public ResponseEntity<?> accessDeniedPermissionException(AccessDeniedPermissionException ex){
-        Message message = new Message();
-        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
 
-        message.setStatus(HttpStatus.FORBIDDEN);
-        message.setMessage("access_denied");
-        message.setMemo(ex.getMessage());
-        return new ResponseEntity<>(message, message.getStatus());
-    }
-
-    @ExceptionHandler(value = {InvalidUserAuthException.class})
-    public ResponseEntity<?> invalidUserAuthException(InvalidUserAuthException ex){
-        Message message = new Message();
-        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
-
-        message.setStatus(HttpStatus.UNAUTHORIZED);
-        message.setMessage("invalid_user");
-        message.setMemo(ex.getMessage());
-        return new ResponseEntity<>(message, message.getStatus());
-    }
-
-    @ExceptionHandler(value = {ConflictErrorException.class})
-    public ResponseEntity<?> conflictErrorException(ConflictErrorException ex){
-        Message message = new Message();
-        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
-
-        message.setStatus(HttpStatus.CONFLICT);
-        message.setMessage("conflicted");
-        message.setMemo(ex.getMessage());
-        return new ResponseEntity<>(message, message.getStatus());
-    }
-
-    @ExceptionHandler(value = {NotAllowedAccessException.class})
-    public ResponseEntity<?> notAllowedAccessException(NotAllowedAccessException ex){
-        Message message = new Message();
-        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
-
-        message.setStatus(HttpStatus.NOT_ACCEPTABLE);
-        message.setMessage("not_acceptable");
-        message.setMemo(ex.getMessage());
-        return new ResponseEntity<>(message, message.getStatus());
-    }
-
-    @ExceptionHandler(value = {NotMatchedFormatException.class})
-    public ResponseEntity<?> notMatchedFormatException(NotMatchedFormatException ex){
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+    public ResponseEntity<?> methodArgumentNotValidException(MethodArgumentNotValidException ex){
         Message message = new Message();
         log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
 
         message.setStatus(HttpStatus.BAD_REQUEST);
-        message.setMessage("not_matched_format");
-        message.setMemo(ex.getMessage());
+        message.setMessage("data_error");
+        message.setMemo("올바르지 않은 데이터 형식이 존재합니다.");
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @ExceptionHandler(value = {FileNotFoundException.class})
+    public ResponseEntity<?> fileNotFoundException(FileNotFoundException ex){
+        Message message = new Message();
+        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
+
+        message.setStatus(HttpStatus.NOT_FOUND);
+        message.setMessage("file_not_found");
+        message.setMemo("요청된 파일을 찾을 수 없습니다.");
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @ExceptionHandler({ Exception.class })
+    public ResponseEntity<?> ExceptionErrorHandler(Exception e) {
+        log.error("ERROR STACKTRACE => {}", e.getStackTrace());
+
+        Message message = new Message();
+        message.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        message.setMessage("error");
+        message.setMemo("undefined error.");
+
         return new ResponseEntity<>(message, message.getStatus());
     }
 }
