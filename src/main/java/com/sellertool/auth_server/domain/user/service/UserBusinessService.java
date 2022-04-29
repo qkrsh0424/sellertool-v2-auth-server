@@ -314,7 +314,11 @@ public class UserBusinessService {
             String PHONE_AUTH_JWT_KEY = phoneAuthNumber + PHONE_AUTH_JWT_SECRET;
 
             // 인증번호 검증
-            Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthJwtToken).getBody();
+            Claims claims = Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthJwtToken).getBody();
+
+            if(!claims.get("phoneNumber").equals(phoneNumber)) {
+                throw new UserInfoAuthJwtException("인증 요청이 올바르지 않습니다.");
+            }
 
             // 인증되었다면 새로운 JWT 쿠키 생성
             String authToken = UserInfoAuthTokenUtils.getPhoneAuthVerifiedJwtToken(phoneNumber);
