@@ -5,6 +5,7 @@ import com.sellertool.auth_server.domain.message.dto.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -63,6 +64,39 @@ public class GlobalExceptionHandlerController {
         message.setStatus(HttpStatus.BAD_REQUEST);
         message.setMessage("not_matched_format");
         message.setMemo(ex.getMessage());
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @ExceptionHandler(value = {UserInfoAuthJwtException.class})
+    public ResponseEntity<?> userInfoAuthException(UserInfoAuthJwtException ex){
+        Message message = new Message();
+        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
+
+        message.setStatus(HttpStatus.BAD_REQUEST);
+        message.setMessage("user_info_auth_error");
+        message.setMemo(ex.getMessage());
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @ExceptionHandler(value = {EmailAuthException.class})
+    public ResponseEntity<?> emailAuthException(EmailAuthException ex){
+        Message message = new Message();
+        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
+
+        message.setStatus(HttpStatus.BAD_REQUEST);
+        message.setMessage("email_send_error");
+        message.setMemo(ex.getMessage());
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+    public ResponseEntity<?> methodArgumentNotValidException(MethodArgumentNotValidException ex){
+        Message message = new Message();
+        log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
+
+        message.setStatus(HttpStatus.BAD_REQUEST);
+        message.setMessage("data_error");
+        message.setMemo("올바르지 않은 데이터 형식이 존재합니다.");
         return new ResponseEntity<>(message, message.getStatus());
     }
 }
