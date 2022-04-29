@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -93,7 +94,7 @@ public class UserApiV1 {
     }
 
     @GetMapping("/email")
-    public ResponseEntity<?> getEmailAuthNumber(@RequestParam Map<String, Object> params, HttpServletResponse response) {
+    public ResponseEntity<?> getEmailAuthNumber(@RequestParam Map<String, Object> params, HttpServletResponse response) throws IOException {
         Message message = new Message();
 
         message.setStatus(HttpStatus.OK);

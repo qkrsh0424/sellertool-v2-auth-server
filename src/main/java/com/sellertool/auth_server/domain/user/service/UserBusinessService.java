@@ -18,6 +18,7 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -27,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.WebUtils;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
@@ -356,13 +357,31 @@ public class UserBusinessService {
         }
     }
 
-    public void getEmailAuthNumber(Map<String, Object> params, HttpServletResponse response) {
+    private String readFromInputStream(InputStream inputStream)
+            throws IOException {
+        StringBuilder resultStringBuilder = new StringBuilder();
+        try (BufferedReader br
+                     = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                resultStringBuilder.append(line).append("\n");
+            }
+        }
+        return resultStringBuilder.toString();
+    }
+
+    public void getEmailAuthNumber(Map<String, Object> params, HttpServletResponse response) throws IOException {
         Long time = System.currentTimeMillis();
         String sendEmail = params.get("email").toString();
         DataFormatUtils.checkEmailFormat(sendEmail);    // 이메일 형식 체크
 
         String authNum = UserAuthInfoUtils.generateAuthNumber();
-        String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
+        String sendMessage = "";
+//        String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
+
+        FileInputStream emailTemplate = new FileInputStream("src/main/resources/static/emailAuthTemplate");
+        sendMessage = IOUtils.toString(emailTemplate, "UTF-8");
+        sendMessage = sendMessage.replaceFirst("------", authNum);
 
         List<ReceipientForRequest> receipients = new ArrayList<>();
         ReceipientForRequest receipient = ReceipientForRequest.builder()
@@ -400,6 +419,7 @@ public class UserBusinessService {
         } catch(UnsupportedEncodingException e) {
             throw new EmailAuthException("이메일 전송이 불가능합니다.");
         } catch(Exception e) {
+            e.printStackTrace();
             throw new EmailAuthException("이메일 전송이 불가능합니다.");
         }
 
