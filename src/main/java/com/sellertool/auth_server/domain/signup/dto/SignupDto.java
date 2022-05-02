@@ -24,7 +24,6 @@ public class SignupDto {
     @NotBlank
     private String nickname;
 
-    @NotBlank
     private String email;
 
     @NotBlank

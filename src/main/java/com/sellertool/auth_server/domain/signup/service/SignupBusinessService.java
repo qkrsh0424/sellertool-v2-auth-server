@@ -78,7 +78,7 @@ public class SignupBusinessService {
         /*
         이메일 검증
          */
-        if (!(EMAIL == null || EMAIL.isBlank() || EMAIL.isEmpty())) {
+        if (!(EMAIL == null || EMAIL.isBlank())) {
             try {
                 DataFormatUtils.checkEmailFormat(EMAIL);    // 이메일 형식 체크
 
@@ -109,7 +109,7 @@ public class SignupBusinessService {
         /*
          전화번호 검증
          */
-        if (!(PHONE_NUMBER == null || PHONE_NUMBER.isBlank() || PHONE_NUMBER.isEmpty())) {
+        if (!(PHONE_NUMBER == null || PHONE_NUMBER.isBlank())) {
             try {
                 DataFormatUtils.checkPhoneNumberFormat(PHONE_NUMBER);    // 전화번호 형식 체크
 

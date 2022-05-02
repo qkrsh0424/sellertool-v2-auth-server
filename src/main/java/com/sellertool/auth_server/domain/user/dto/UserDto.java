@@ -14,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class UserDto {
-    @NotBlank
+
+    @NotNull
     private UUID id;
 
     @NotBlank
@@ -23,12 +24,10 @@ public class UserDto {
     @NotBlank
     private String nickname;
 
-    @NotBlank
     private String roles;
 
     private String name;
 
-    @NotBlank
     private String email;
 
     @NotBlank
