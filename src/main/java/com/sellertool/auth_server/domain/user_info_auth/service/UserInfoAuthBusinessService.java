@@ -66,94 +66,6 @@ public class UserInfoAuthBusinessService {
 
     private String KOREA_COUNTRY_NUMBER = "+82";
 
-    public void getPhoneAuthNumber(Map<String, Object> params, HttpServletResponse response) {
-        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-
-        String phoneNumber = params.get("phoneNumber").toString();
-        DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
-
-        String authNum = UserAuthInfoUtils.generateAuthNumber();
-        String sendPhoneNumber = KOREA_COUNTRY_NUMBER + phoneNumber;
-        String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
-
-        // SMS 전송
-        Message.creator(new PhoneNumber(sendPhoneNumber), new PhoneNumber(FROM_NUMBER), sendMessage).create();
-
-        String authNumToken = UserInfoAuthTokenUtils.getPhoneAuthNumberJwtToken(authNum, phoneNumber);
-
-        ResponseCookie phoneAuthToken = ResponseCookie.from("st_phone_auth_token", authNumToken)
-                .secure(CustomCookieInterface.SECURE)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(CustomCookieInterface.PHONE_AUTH_COOKIE_EXPIRATION)
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
-
-        ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
-    }
-
-    public void verifyPhoneAuthNumber(HttpServletRequest request, HttpServletResponse response, Map<String, Object> params) {
-        try {
-            String phoneNumber = params.get("phoneNumber").toString();
-            String phoneAuthNumber = params.get("phoneAuthNumber").toString();
-            DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
-
-            Cookie authCookie = WebUtils.getCookie(request, "st_phone_auth_token");
-
-            String phoneAuthJwtToken = authCookie.getValue();
-            String PHONE_AUTH_JWT_KEY = phoneAuthNumber + PHONE_AUTH_JWT_SECRET;
-
-            // 인증번호 검증
-            Claims claims = Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthJwtToken).getBody();
-
-            if(!claims.get("phoneNumber").equals(phoneNumber)) {
-                throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-            }
-
-            // 인증되었다면 새로운 JWT 쿠키 생성
-            String authToken = UserInfoAuthTokenUtils.getPhoneAuthVerifiedJwtToken(phoneNumber);
-
-            ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", authToken)
-                    .secure(CustomCookieInterface.SECURE)
-                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(CustomCookieInterface.PHONE_AUTH_VF_COOKIE_EXPIRATION)
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
-
-            // st_phone_auth_token 제거
-            ResponseCookie phoneAuthToken = ResponseCookie.from("st_phone_auth_token", null)
-                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
-        } catch (ExpiredJwtException e) {     // 토큰 만료
-            throw new UserInfoAuthJwtException("인증 요청시간이 만료되었습니다.");
-        } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
-            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-        } catch (IllegalArgumentException e) {
-            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-        } catch (UnsupportedJwtException e) {
-            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-        } catch (MalformedJwtException e) {
-            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-        } catch (SignatureException e) {
-            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
-        }
-    }
-
     public void getEmailAuthNumber(Map<String, Object> params, HttpServletResponse response) throws IOException {
         Long time = System.currentTimeMillis();
         String sendEmail = params.get("email").toString();
@@ -161,7 +73,6 @@ public class UserInfoAuthBusinessService {
 
         String authNum = UserAuthInfoUtils.generateAuthNumber();
         String sendMessage = "";
-//        String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
 
         FileInputStream emailTemplate = new FileInputStream("src/main/resources/static/emailAuthTemplate");
         sendMessage = IOUtils.toString(emailTemplate, "UTF-8");
@@ -280,6 +191,94 @@ public class UserInfoAuthBusinessService {
             throw new UserInfoAuthJwtException("이메일 인증 요청이 올바르지 않습니다.");
         } catch (SignatureException e) {
             throw new UserInfoAuthJwtException("이메일 인증 요청이 올바르지 않습니다.");
+        }
+    }
+
+    public void getPhoneAuthNumber(Map<String, Object> params, HttpServletResponse response) {
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+
+        String phoneNumber = params.get("phoneNumber").toString();
+        DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
+
+        String authNum = UserAuthInfoUtils.generateAuthNumber();
+        String sendPhoneNumber = KOREA_COUNTRY_NUMBER + phoneNumber;
+        String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
+
+        // SMS 전송
+        Message.creator(new PhoneNumber(sendPhoneNumber), new PhoneNumber(FROM_NUMBER), sendMessage).create();
+
+        String authNumToken = UserInfoAuthTokenUtils.getPhoneAuthNumberJwtToken(authNum, phoneNumber);
+
+        ResponseCookie phoneAuthToken = ResponseCookie.from("st_phone_auth_token", authNumToken)
+                .secure(CustomCookieInterface.SECURE)
+                .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(CustomCookieInterface.PHONE_AUTH_COOKIE_EXPIRATION)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
+
+        ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
+                .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
+    }
+
+    public void verifyPhoneAuthNumber(HttpServletRequest request, HttpServletResponse response, Map<String, Object> params) {
+        try {
+            String phoneNumber = params.get("phoneNumber").toString();
+            String phoneAuthNumber = params.get("phoneAuthNumber").toString();
+            DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
+
+            Cookie authCookie = WebUtils.getCookie(request, "st_phone_auth_token");
+
+            String phoneAuthJwtToken = authCookie.getValue();
+            String PHONE_AUTH_JWT_KEY = phoneAuthNumber + PHONE_AUTH_JWT_SECRET;
+
+            // 인증번호 검증
+            Claims claims = Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthJwtToken).getBody();
+
+            if(!claims.get("phoneNumber").equals(phoneNumber)) {
+                throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
+            }
+
+            // 인증되었다면 새로운 JWT 쿠키 생성
+            String authToken = UserInfoAuthTokenUtils.getPhoneAuthVerifiedJwtToken(phoneNumber);
+
+            ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", authToken)
+                    .secure(CustomCookieInterface.SECURE)
+                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(CustomCookieInterface.PHONE_AUTH_VF_COOKIE_EXPIRATION)
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
+
+            // st_phone_auth_token 제거
+            ResponseCookie phoneAuthToken = ResponseCookie.from("st_phone_auth_token", null)
+                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                    .sameSite("Strict")
+                    .path("/")
+                    .maxAge(0)
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
+        } catch (ExpiredJwtException e) {     // 토큰 만료
+            throw new UserInfoAuthJwtException("인증 요청시간이 만료되었습니다.");
+        } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
+            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
+        } catch (IllegalArgumentException e) {
+            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
+        } catch (UnsupportedJwtException e) {
+            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
+        } catch (MalformedJwtException e) {
+            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
+        } catch (SignatureException e) {
+            throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
         }
     }
 }

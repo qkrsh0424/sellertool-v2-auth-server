@@ -24,13 +24,14 @@ public class UserDto {
     @NotBlank
     private String nickname;
 
+    @NotBlank
     private String roles;
 
     private String name;
 
+    @NotBlank
     private String email;
 
-    @NotBlank
     private String phoneNumber;
 
     public static UserDto toDto(UserEntity entity) {

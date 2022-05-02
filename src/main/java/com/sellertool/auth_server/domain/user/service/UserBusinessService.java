@@ -143,86 +143,85 @@ public class UserBusinessService {
         UserEntity userEntity = userService.searchUserByUserId(USER_ID);
 
         /*
-        이메일 검증 (선택값)
-         */
-        if (!(userDto.getEmail() == null || userDto.getEmail().isBlank())) {
-            try {
-                Cookie authToken = WebUtils.getCookie(request, "st_email_auth_token");
-                Cookie verifiedToken = WebUtils.getCookie(request, "st_email_auth_vf_token");
-                String USER_EMAIL = userEntity.getEmail() == null ? "" : userEntity.getEmail();
-
-                // 인증번호 요청 토큰이 존재하지 않고, 이메일 입력값만 변경된 경우 제한
-                if (authToken == null) {
-                    if(verifiedToken != null || !USER_EMAIL.equals(userDto.getEmail())) {
-                        String email = userDto.getEmail();
-                        DataFormatUtils.checkEmailFormat(email);    // 이메일 형식 체크
-
-                        String emailAuthToken = verifiedToken.getValue();
-                        String EMAIL_AUTH_JWT_KEY = email + EMAIL_AUTH_JWT_SECRET;
-
-                        Jwts.parser().setSigningKey(EMAIL_AUTH_JWT_KEY).parseClaimsJws(emailAuthToken).getBody();
-
-                        // st_email_auth_vf_token 제거
-                        ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
-                                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                                .sameSite("Strict")
-                                .path("/")
-                                .maxAge(0)
-                                .build();
-                        response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
-                    }
-                } else {
-                    throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
-                }
-            } catch (ExpiredJwtException e) {     // 토큰 만료
-                throw new UserInfoAuthJwtException("이메일 인증 토큰이 만료되었습니다.");
-            } catch (SignatureException e) {
-                throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
-            } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
-                throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
-            }
-        }
-
-
-        /*
-         전화번호 검증
+        이메일 검증
          */
         try {
-            Cookie authToken = WebUtils.getCookie(request, "st_phone_auth_token");
-            Cookie verifiedToken = WebUtils.getCookie(request, "st_phone_auth_vf_token");
-            String USER_PHONE_NUMBER = userEntity.getPhoneNumber() == null ? "" : userEntity.getPhoneNumber();
+            Cookie authToken = WebUtils.getCookie(request, "st_email_auth_token");
+            Cookie verifiedToken = WebUtils.getCookie(request, "st_email_auth_vf_token");
+            String USER_EMAIL = userEntity.getEmail() == null ? "" : userEntity.getEmail();
 
-            if (authToken == null){
-                // 전화번호 입력값만 변경된 경우 제한
-                if(verifiedToken != null || !USER_PHONE_NUMBER.equals(userDto.getPhoneNumber())) {
-                    String phoneNumber = userDto.getPhoneNumber();
-                    DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
+            // 인증번호 요청 토큰이 존재하지 않고, 이메일 입력값만 변경된 경우 제한
+            if (authToken == null) {
+                if (verifiedToken != null || !USER_EMAIL.equals(userDto.getEmail())) {
+                    String email = userDto.getEmail();
+                    DataFormatUtils.checkEmailFormat(email);    // 이메일 형식 체크
 
-                    String phoneAuthToken = verifiedToken.getValue();
-                    String PHONE_AUTH_JWT_KEY = phoneNumber + PHONE_AUTH_JWT_SECRET;
+                    String emailAuthToken = verifiedToken.getValue();
+                    String EMAIL_AUTH_JWT_KEY = email + EMAIL_AUTH_JWT_SECRET;
 
-                    Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthToken).getBody();
+                    Jwts.parser().setSigningKey(EMAIL_AUTH_JWT_KEY).parseClaimsJws(emailAuthToken).getBody();
 
-                    // st_phone_auth_vf_token 제거
-                    ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
+                    // st_email_auth_vf_token 제거
+                    ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
                             .domain(CustomCookieInterface.COOKIE_DOMAIN)
                             .sameSite("Strict")
                             .path("/")
                             .maxAge(0)
                             .build();
-                    response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
+                    response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
                 }
-            }else {
-                throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
+            } else {
+                throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
             }
         } catch (ExpiredJwtException e) {     // 토큰 만료
-            throw new UserInfoAuthJwtException("전화번호 인증 토큰이 만료되었습니다.");
+            throw new UserInfoAuthJwtException("이메일 인증 토큰이 만료되었습니다.");
         } catch (SignatureException e) {
-            throw new UserInfoAuthJwtException("전화번호 인증이 올바르지 않습니다.");
+            throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
         } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
-            throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
-        } catch (Exception e) {
-            throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
+            throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
+        }
+
+        /*
+         전화번호 검증 (선택 값)
+         */
+        if (!(userDto.getPhoneNumber() == null || userDto.getPhoneNumber().isBlank())) {
+            try {
+                Cookie authToken = WebUtils.getCookie(request, "st_phone_auth_token");
+                Cookie verifiedToken = WebUtils.getCookie(request, "st_phone_auth_vf_token");
+                String USER_PHONE_NUMBER = userEntity.getPhoneNumber() == null ? "" : userEntity.getPhoneNumber();
+
+                if (authToken == null) {
+                    // 전화번호 입력값만 변경된 경우 제한
+                    if (verifiedToken != null || !USER_PHONE_NUMBER.equals(userDto.getPhoneNumber())) {
+                        String phoneNumber = userDto.getPhoneNumber();
+                        DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
+
+                        String phoneAuthToken = verifiedToken.getValue();
+                        String PHONE_AUTH_JWT_KEY = phoneNumber + PHONE_AUTH_JWT_SECRET;
+
+                        Jwts.parser().setSigningKey(PHONE_AUTH_JWT_KEY).parseClaimsJws(phoneAuthToken).getBody();
+
+                        // st_phone_auth_vf_token 제거
+                        ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
+                                .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                                .sameSite("Strict")
+                                .path("/")
+                                .maxAge(0)
+                                .build();
+                        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
+                    }
+                } else {
+                    throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
+                }
+            } catch (ExpiredJwtException e) {     // 토큰 만료
+                throw new UserInfoAuthJwtException("전화번호 인증 토큰이 만료되었습니다.");
+            } catch (SignatureException e) {
+                throw new UserInfoAuthJwtException("전화번호 인증이 올바르지 않습니다.");
+            } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
+                throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
+            } catch (Exception e) {
+                throw new UserInfoAuthJwtException("전화번호 인증이 완료되지 않았습니다.");
+            }
         }
 
         /*
