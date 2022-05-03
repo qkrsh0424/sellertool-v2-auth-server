@@ -145,46 +145,43 @@ public class UserBusinessService {
         /*
         이메일 검증
          */
-        try {
-            Cookie authToken = WebUtils.getCookie(request, "st_email_auth_token");
-            Cookie verifiedToken = WebUtils.getCookie(request, "st_email_auth_vf_token");
-            String USER_EMAIL = userEntity.getEmail() == null ? "" : userEntity.getEmail();
+        if (userDto.isVerifiedEmail() && userDto.getEmail() != null) {
+            try {
+                Cookie verifiedToken = WebUtils.getCookie(request, "st_email_auth_vf_token");
 
-            // 인증번호 요청 토큰이 존재하지 않고, 이메일 입력값만 변경된 경우 제한
-            if (authToken == null) {
-                if (verifiedToken != null || !USER_EMAIL.equals(userDto.getEmail())) {
-                    String email = userDto.getEmail();
-                    DataFormatUtils.checkEmailFormat(email);    // 이메일 형식 체크
+                String email = userDto.getEmail();
+                DataFormatUtils.checkEmailFormat(email);    // 이메일 형식 체크
 
-                    String emailAuthToken = verifiedToken.getValue();
-                    String EMAIL_AUTH_JWT_KEY = email + EMAIL_AUTH_JWT_SECRET;
+                String emailAuthToken = verifiedToken.getValue();
+                String EMAIL_AUTH_JWT_KEY = email + EMAIL_AUTH_JWT_SECRET;
 
-                    Jwts.parser().setSigningKey(EMAIL_AUTH_JWT_KEY).parseClaimsJws(emailAuthToken).getBody();
+                Jwts.parser().setSigningKey(EMAIL_AUTH_JWT_KEY).parseClaimsJws(emailAuthToken).getBody();
 
-                    // st_email_auth_vf_token 제거
-                    ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
-                            .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                            .sameSite("Strict")
-                            .path("/")
-                            .maxAge(0)
-                            .build();
-                    response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
-                }
-            } else {
+                // st_email_auth_vf_token 제거
+                ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
+                        .domain(CustomCookieInterface.COOKIE_DOMAIN)
+                        .sameSite("Strict")
+                        .path("/")
+                        .maxAge(0)
+                        .build();
+                response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
+
+                userEntity.setEmail(userDto.getEmail());
+            } catch (ExpiredJwtException e) {     // 토큰 만료
+                throw new UserInfoAuthJwtException("이메일 인증 토큰이 만료되었습니다.");
+            } catch (SignatureException e) {
+                throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
+            } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
                 throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
             }
-        } catch (ExpiredJwtException e) {     // 토큰 만료
-            throw new UserInfoAuthJwtException("이메일 인증 토큰이 만료되었습니다.");
-        } catch (SignatureException e) {
-            throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
-        } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면
-            throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
         }
 
         /*
          전화번호 검증 (선택 값)
          */
-        if (!(userDto.getPhoneNumber() == null || userDto.getPhoneNumber().isBlank())) {
+        if (!(userDto.getPhoneNumber() == null || userDto.getPhoneNumber().
+
+                isBlank())) {
             try {
                 Cookie authToken = WebUtils.getCookie(request, "st_phone_auth_token");
                 Cookie verifiedToken = WebUtils.getCookie(request, "st_phone_auth_vf_token");
@@ -229,7 +226,6 @@ public class UserBusinessService {
          */
         userEntity.setName(userDto.getName());
         userEntity.setNickname(userDto.getNickname());
-        userEntity.setEmail(userDto.getEmail());
         userEntity.setPhoneNumber(userDto.getPhoneNumber());
     }
 

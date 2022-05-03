@@ -1,7 +1,7 @@
 package com.sellertool.auth_server.domain.user_info_auth.controller;
 
 import com.sellertool.auth_server.domain.message.dto.Message;
-import com.sellertool.auth_server.domain.user_info_auth.service.UserInfoAuthBusinessService;
+import com.sellertool.auth_server.domain.user_info_auth.service.UserInfoAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,29 +19,7 @@ import java.util.Map;
 @RequestMapping("/auth/v1/user-info-auth")
 @RequiredArgsConstructor
 public class UserInfoAuthApiV1 {
-    private final UserInfoAuthBusinessService userInfoAuthBusinessService;
-
-    @GetMapping("/phone")
-    public ResponseEntity<?> getPhoneAuthNumber(@RequestParam Map<String, Object> params, HttpServletResponse response){
-        Message message = new Message();
-
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-        userInfoAuthBusinessService.getPhoneAuthNumber(params, response);
-
-        return new ResponseEntity<>(message, message.getStatus());
-    }
-
-    @GetMapping("/phone/verify")
-    public ResponseEntity<?> verifyPhoneAuthNumber(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String, Object> params){
-        Message message = new Message();
-
-        message.setStatus(HttpStatus.OK);
-        message.setMessage("success");
-        userInfoAuthBusinessService.verifyPhoneAuthNumber(request, response, params);
-
-        return new ResponseEntity<>(message, message.getStatus());
-    }
+    private final UserInfoAuthService userInfoAuthBusinessService;
 
     @GetMapping("/email")
     public ResponseEntity<?> getEmailAuthNumber(@RequestParam Map<String, Object> params, HttpServletResponse response) throws IOException {
@@ -61,6 +39,28 @@ public class UserInfoAuthApiV1 {
         message.setStatus(HttpStatus.OK);
         message.setMessage("success");
         userInfoAuthBusinessService.verifyEmailAuthNumber(request, response, params);
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @GetMapping("/phone")
+    public ResponseEntity<?> getPhoneAuthNumber(@RequestParam Map<String, Object> params, HttpServletResponse response){
+        Message message = new Message();
+
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+        userInfoAuthBusinessService.getPhoneAuthNumber(params, response);
+
+        return new ResponseEntity<>(message, message.getStatus());
+    }
+
+    @GetMapping("/phone/verify")
+    public ResponseEntity<?> verifyPhoneAuthNumber(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String, Object> params){
+        Message message = new Message();
+
+        message.setStatus(HttpStatus.OK);
+        message.setMessage("success");
+        userInfoAuthBusinessService.verifyPhoneAuthNumber(request, response, params);
 
         return new ResponseEntity<>(message, message.getStatus());
     }
