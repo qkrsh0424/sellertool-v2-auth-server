@@ -14,7 +14,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class UserDto {
-    @NotBlank
+
+    @NotNull
     private UUID id;
 
     @NotBlank
@@ -31,7 +32,6 @@ public class UserDto {
     @NotBlank
     private String email;
 
-    @NotBlank
     private String phoneNumber;
 
     public static UserDto toDto(UserEntity entity) {

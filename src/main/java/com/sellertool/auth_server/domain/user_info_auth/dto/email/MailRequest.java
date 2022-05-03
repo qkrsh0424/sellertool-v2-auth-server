@@ -1,4 +1,4 @@
-package com.sellertool.auth_server.domain.email;
+package com.sellertool.auth_server.domain.user_info_auth.dto.email;
 
 import lombok.*;
 

@@ -20,7 +20,7 @@ public class GlobalExceptionHandlerController {
         log.warn("ERROR STACKTRACE => {}", ex.getStackTrace());
 
         message.setStatus(HttpStatus.BAD_REQUEST);
-        message.setMessage("data_error");
+        message.setMessage("data_invalidation");
         message.setMemo("올바르지 않은 데이터 형식이 존재합니다.");
         return new ResponseEntity<>(message, message.getStatus());
     }

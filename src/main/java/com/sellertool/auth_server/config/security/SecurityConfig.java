@@ -63,7 +63,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/auth/v1/user/**",
                         "/auth/v1/logout",
                         "/auth/v1/refresh",
-                        "/auth/v1/signup"
+                        "/auth/v1/signup",
+                        "/auth/v1/user-info-auth/**"
                 )
                 .permitAll()
                 .anyRequest().denyAll()
