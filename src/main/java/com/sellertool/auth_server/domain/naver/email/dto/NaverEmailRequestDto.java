@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MailRequestDto {
+public class NaverEmailRequestDto {
     private String senderAddress;   // 발송자 Email주소
     private String senderName;  // 발송자 이름
     private String title;   // 제목

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sellertool.auth_server.config.naver.NaverEmailConfiguration;
 import com.sellertool.auth_server.domain.exception.dto.EmailAuthException;
-import com.sellertool.auth_server.domain.naver.email.dto.MailRequestDto;
+import com.sellertool.auth_server.domain.naver.email.dto.NaverEmailRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 public class NaverEmailService {
     private final NaverEmailConfiguration naverEmailConfiguration;
 
-    public void sendEmail(MailRequestDto mailRequestDto) {
+    public void sendEmail(NaverEmailRequestDto mailRequestDto) {
         try {
             Long time = System.currentTimeMillis();
 
@@ -39,7 +39,7 @@ public class NaverEmailService {
             HttpEntity<String> body = new HttpEntity<>(jsonBody, headers);
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-            restTemplate.postForObject(new URI(naverEmailConfiguration.getRequestUrl() + naverEmailConfiguration.getRequestMailApi()), body, HashMap.class);
+            restTemplate.postForObject(new URI(naverEmailConfiguration.getMailRequestUrl() + naverEmailConfiguration.getMailApiUri()), body, HashMap.class);
         } catch (URISyntaxException e) {
             throw new EmailAuthException("이메일 전송이 불가능합니다.");
         } catch (JsonProcessingException e) {
@@ -63,7 +63,7 @@ public class NaverEmailService {
         String newLine = "\n";
         String method = "POST";
         String space = " ";
-        String url = naverEmailConfiguration.getRequestMailApi();
+        String url = naverEmailConfiguration.getMailApiUri();
         String accessKey = naverEmailConfiguration.getAccessKey();
         String secretKey = naverEmailConfiguration.getSecretKey();
 

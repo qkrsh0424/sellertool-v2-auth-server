@@ -36,6 +36,8 @@ public class UserDto {
 
     private boolean verifiedEmail;
 
+    private boolean verifiedPhoneNumber;
+
     public static UserDto toDto(UserEntity entity) {
         UserDto dto = UserDto.builder()
                 .id(entity.getId())

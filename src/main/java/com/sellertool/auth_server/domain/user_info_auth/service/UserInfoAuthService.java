@@ -1,14 +1,13 @@
 package com.sellertool.auth_server.domain.user_info_auth.service;
 
-import com.sellertool.auth_server.config.twilio.TwilioSmsConfiguration;
 import com.sellertool.auth_server.domain.exception.dto.UserInfoAuthJwtException;
-import com.sellertool.auth_server.domain.naver.email.dto.MailRequestDto;
+import com.sellertool.auth_server.domain.naver.email.dto.NaverEmailRequestDto;
 import com.sellertool.auth_server.domain.naver.email.service.NaverEmailService;
+import com.sellertool.auth_server.domain.twilio.sms.dto.TwilioSmsRequestDto;
+import com.sellertool.auth_server.domain.twilio.sms.service.TwilioSmsService;
 import com.sellertool.auth_server.utils.CustomCookieInterface;
 import com.sellertool.auth_server.utils.DataFormatUtils;
 import com.sellertool.auth_server.utils.UserInfoAuthTokenUtils;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
@@ -29,10 +28,10 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class UserInfoAuthService {
-    private final TwilioSmsConfiguration twilioSmsConfiguration;
     private final NaverEmailService naverEmailService;
+    private final TwilioSmsService twilioSmsService;
 
-    @Value("${email.admin.id}")
+    @Value("${app.email.admin.id}")
     private String EMAIL_ID;
 
     @Value("${phone.auth.token.secret}")
@@ -54,14 +53,14 @@ public class UserInfoAuthService {
         sendMessage = IOUtils.toString(emailTemplate, "UTF-8");
         sendMessage = sendMessage.replaceFirst("------", authNum);
 
-        List<MailRequestDto.ReceipientForRequest> receipients = new ArrayList<>();
-        MailRequestDto.ReceipientForRequest receipient = MailRequestDto.ReceipientForRequest.builder()
+        List<NaverEmailRequestDto.ReceipientForRequest> receipients = new ArrayList<>();
+        NaverEmailRequestDto.ReceipientForRequest receipient = NaverEmailRequestDto.ReceipientForRequest.builder()
                 .address(sendEmail)
                 .type("R")
                 .build();
         receipients.add(receipient);
 
-        MailRequestDto mailRequestDto = MailRequestDto.builder()
+        NaverEmailRequestDto mailRequestDto = NaverEmailRequestDto.builder()
                 .senderAddress(EMAIL_ID)
                 .senderName("Sellertool")
                 .title("[셀러툴] 이메일 인증")
@@ -69,6 +68,7 @@ public class UserInfoAuthService {
                 .recipients(receipients)
                 .build();
 
+//        System.out.println(authNum);
         naverEmailService.sendEmail(mailRequestDto);
 
         String authNumToken = UserInfoAuthTokenUtils.getEmailAuthNumberJwtToken(authNum, sendEmail);
@@ -112,7 +112,7 @@ public class UserInfoAuthService {
                 throw new UserInfoAuthJwtException("인증 요청이 올바르지 않습니다.");
             }
 
-            // 인증되었다면 새로운 JWT 쿠키 생성
+            // 인증 성공 JWT 쿠키 생성
             String authToken = UserInfoAuthTokenUtils.getEmailAuthVerifiedJwtToken(email);
 
             ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", authToken)
@@ -154,11 +154,18 @@ public class UserInfoAuthService {
         DataFormatUtils.checkPhoneNumberFormat(phoneNumber);    // 전화번호 형식 체크
 
         String authNum = String.valueOf((int) (Math.random() * 900000) + 100000);
+
         String sendPhoneNumber = KOREA_COUNTRY_NUMBER + phoneNumber;
         String sendMessage = "[셀러툴] 본인확인 인증번호[" + authNum + "]입니다. \"타인 노출 금지\"";
 
+        TwilioSmsRequestDto smsRequestDto = TwilioSmsRequestDto.builder()
+                .sendPhoneNumber(sendPhoneNumber)
+                .sendMessage(sendMessage)
+                .build();
+
+//        System.out.println(sendMessage);
         // SMS 전송
-        Message.creator(new PhoneNumber(sendPhoneNumber), new PhoneNumber(twilioSmsConfiguration.getFromNumber()), sendMessage).create();
+        twilioSmsService.sendSmsAsync(smsRequestDto);
 
         String authNumToken = UserInfoAuthTokenUtils.getPhoneAuthNumberJwtToken(authNum, phoneNumber);
 
@@ -200,7 +207,7 @@ public class UserInfoAuthService {
                 throw new UserInfoAuthJwtException("전화번호 인증 요청이 올바르지 않습니다.");
             }
 
-            // 인증되었다면 새로운 JWT 쿠키 생성
+            // 인증 성공 JWT 쿠키 생성
             String authToken = UserInfoAuthTokenUtils.getPhoneAuthVerifiedJwtToken(phoneNumber);
 
             ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", authToken)

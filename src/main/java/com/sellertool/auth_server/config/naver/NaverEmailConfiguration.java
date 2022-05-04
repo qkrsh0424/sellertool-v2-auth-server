@@ -4,12 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties("naver.cloud.platform")
+@ConfigurationProperties("app.cloud.naver.platform")
 public class NaverEmailConfiguration {
     private String accessKey;
     private String secretKey;
-    private String requestUrl;
-    private String requestMailApi;
+    private String mailRequestUrl;
+    private String mailApiUri;
 
     public NaverEmailConfiguration() {
     }
@@ -30,19 +30,19 @@ public class NaverEmailConfiguration {
         this.secretKey = secretKey;
     }
 
-    public String getRequestUrl() {
-        return requestUrl;
+    public String getMailRequestUrl() {
+        return mailRequestUrl;
     }
 
-    public void setRequestUrl(String requestUrl) {
-        this.requestUrl = requestUrl;
+    public void setMailRequestUrl(String mailRequestUrl) {
+        this.mailRequestUrl = mailRequestUrl;
     }
 
-    public String getRequestMailApi() {
-        return requestMailApi;
+    public String getMailApiUri() {
+        return mailApiUri;
     }
 
-    public void setRequestMailApi(String requestMailApi) {
-        this.requestMailApi = requestMailApi;
+    public void setMailApiUri(String mailApiUri) {
+        this.mailApiUri = mailApiUri;
     }
 }

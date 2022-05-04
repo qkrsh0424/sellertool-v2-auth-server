@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties("twilio")
+@ConfigurationProperties("app.twilio")
 public class TwilioSmsConfiguration {
     private String accountSid;
     private String authToken;
