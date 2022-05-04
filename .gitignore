@@ -34,3 +34,6 @@ build/
 
 ### properties ###
 src/main/resources/application.properties
+
+### Local ###
+*.DS_Store
