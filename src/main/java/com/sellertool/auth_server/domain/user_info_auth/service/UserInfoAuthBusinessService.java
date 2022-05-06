@@ -1,10 +1,12 @@
 package com.sellertool.auth_server.domain.user_info_auth.service;
 
+import com.sellertool.auth_server.domain.exception.dto.ConflictErrorException;
 import com.sellertool.auth_server.domain.exception.dto.UserInfoAuthJwtException;
 import com.sellertool.auth_server.domain.naver.email.dto.NaverEmailRequestDto;
 import com.sellertool.auth_server.domain.naver.email.service.NaverEmailService;
 import com.sellertool.auth_server.domain.twilio.sms.dto.TwilioSmsRequestDto;
 import com.sellertool.auth_server.domain.twilio.sms.service.TwilioSmsService;
+import com.sellertool.auth_server.domain.user.service.UserService;
 import com.sellertool.auth_server.utils.CustomCookieInterface;
 import com.sellertool.auth_server.utils.DataFormatUtils;
 import com.sellertool.auth_server.utils.UserInfoAuthTokenUtils;
@@ -27,9 +29,10 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class UserInfoAuthService {
+public class UserInfoAuthBusinessService {
     private final NaverEmailService naverEmailService;
     private final TwilioSmsService twilioSmsService;
+    private final UserService userService;
 
     @Value("${app.email.admin.id}")
     private String EMAIL_ID;
@@ -45,6 +48,14 @@ public class UserInfoAuthService {
     public void getEmailAuthNumber(Map<String, Object> params, HttpServletResponse response) throws IOException {
         String sendEmail = params.get("email").toString();
         DataFormatUtils.checkEmailFormat(sendEmail);    // 이메일 형식 체크
+
+        /*
+        이메일 중복 체크
+         */
+        if(userService.isDuplicatedEmail(sendEmail)){
+            throw new ConflictErrorException("이미 가입된 이메일주소입니다.");
+        }
+
         String authNum = String.valueOf((int) (Math.random() * 900000) + 100000);
         String sendMessage = "";
 
@@ -83,15 +94,6 @@ public class UserInfoAuthService {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, emailAuthToken.toString());
-
-        // st_email_auth_vf_token 제거
-        ResponseCookie emailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
     }
 
     public void verifyEmailAuthNumber(HttpServletRequest request, HttpServletResponse response, Map<String, Object> params) {
@@ -125,15 +127,6 @@ public class UserInfoAuthService {
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
-
-            // st_email_auth_token 제거
-            ResponseCookie emailAuthToken = ResponseCookie.from("st_email_auth_token", null)
-                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, emailAuthToken.toString());
         } catch (ExpiredJwtException e) {     // 토큰 만료
             throw new UserInfoAuthJwtException("이메일 인증 요청시간이 만료되었습니다.");
         } catch (NullPointerException e) {   // Email Auth Number 쿠키가 존재하지 않는다면
@@ -163,7 +156,7 @@ public class UserInfoAuthService {
                 .sendMessage(sendMessage)
                 .build();
 
-//        System.out.println(sendMessage);
+//         System.out.println(sendMessage);
         // SMS 전송
         twilioSmsService.sendSmsAsync(smsRequestDto);
 
@@ -179,14 +172,6 @@ public class UserInfoAuthService {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
-
-        ResponseCookie phoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
     }
 
     public void verifyPhoneAuthNumber(HttpServletRequest request, HttpServletResponse response, Map<String, Object> params) {
@@ -220,15 +205,6 @@ public class UserInfoAuthService {
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthVerifiedToken.toString());
-
-            // st_phone_auth_token 제거
-            ResponseCookie phoneAuthToken = ResponseCookie.from("st_phone_auth_token", null)
-                    .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, phoneAuthToken.toString());
         } catch (ExpiredJwtException e) {     // 토큰 만료
             throw new UserInfoAuthJwtException("인증 요청시간이 만료되었습니다.");
         } catch (NullPointerException e) {   // Phone Auth Number 쿠키가 존재하지 않는다면

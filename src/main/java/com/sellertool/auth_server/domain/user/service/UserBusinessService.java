@@ -38,9 +38,6 @@ public class UserBusinessService {
 
     @Transactional(readOnly = true)
     public Object getInfoOwn(HttpServletResponse response) {
-        // 이메일, 전화번호 인증 토큰 제거
-        this.removeUserInfoAuthCookie(response);
-
         if (!userService.isLogin()) {
             throw new InvalidUserAuthException("로그인이 필요한 서비스 입니다.");
         }
@@ -48,49 +45,6 @@ public class UserBusinessService {
         UUID USER_ID = userService.getUserId();
         UserVo userVo = UserVo.toVo(userService.searchUserByUserId(USER_ID));
         return userVo;
-    }
-
-    /*
-    이메일 인증 요청 토큰 제거
-    이메일 인증 성공 토큰 제거
-    전화번호 인증 요청 토큰 제거
-    전화번호 인증 성공 토큰 제거
-     */
-    public void removeUserInfoAuthCookie(HttpServletResponse response) {
-        ResponseCookie rmEmailAuthToken = ResponseCookie.from("st_email_auth_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        ResponseCookie rmEmailAuthVerifiedToken = ResponseCookie.from("st_email_auth_vf_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        // st_phone_auth_vf_token 제거
-        ResponseCookie rmPhoneAuthToken = ResponseCookie.from("st_phone_auth_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        // st_phone_auth_vf_token 제거
-        ResponseCookie rmPhoneAuthVerifiedToken = ResponseCookie.from("st_phone_auth_vf_token", null)
-                .domain(CustomCookieInterface.COOKIE_DOMAIN)
-                .sameSite("Strict")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, rmEmailAuthToken.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, rmEmailAuthVerifiedToken.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, rmPhoneAuthToken.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, rmPhoneAuthVerifiedToken.toString());
     }
 
     @Transactional(readOnly = true)
@@ -142,6 +96,12 @@ public class UserBusinessService {
          */
         UserEntity userEntity = userService.searchUserByUserId(USER_ID);
 
+        /*
+        이메일 중복 여부 체크
+         */
+        if (userService.isDuplicatedEmail(userDto.getEmail())) {
+            throw new ConflictErrorException("이미 가입된 이메일주소입니다.");
+        }
 
         /*
         이메일 검증
