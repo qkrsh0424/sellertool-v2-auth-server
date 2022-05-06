@@ -63,8 +63,18 @@ public class SignupBusinessService {
         String NICKNAME = signupDto.getNickname();
         String EMAIL = signupDto.getEmail();
 
+        /*
+        아이디 중복 체크
+         */
         if (userService.isDuplicatedUsername(USERNAME)) {
             throw new ConflictErrorException("아이디 중복 체크를 확인해 주세요.");
+        }
+
+        /*
+        이메일 중복 체크
+         */
+        if (userService.isDuplicatedEmail(EMAIL)) {
+            throw new ConflictErrorException("이미 가입된 이메일주소입니다.");
         }
 
         if (!PASSWORD.equals(PASSWORD_CHECK)) {
@@ -74,8 +84,12 @@ public class SignupBusinessService {
         /*
         이메일 검증
          */
+        if(!signupDto.isVerifiedEmail()) {
+            throw new UserInfoAuthJwtException("이메일 인증이 완료되지 않았습니다.");
+        }
+
         try {
-            DataFormatUtils.checkEmailFormat(EMAIL);    // 이메일 형식 체크
+            DataFormatUtils.checkEmailFormat(EMAIL); // 이메일 형식 체크
 
             Cookie verifiedToken = WebUtils.getCookie(request, "st_email_auth_vf_token");
 
@@ -92,9 +106,9 @@ public class SignupBusinessService {
                     .maxAge(0)
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, emailAuthVerifiedToken.toString());
-        } catch (ExpiredJwtException e) {     // 토큰 만료
+        } catch (ExpiredJwtException e) { // 토큰 만료
             throw new UserInfoAuthJwtException("이메일 인증 토큰이 만료되었습니다.");
-        } catch (NullPointerException e) {   // Email Auth Number 쿠키가 존재하지 않는다면
+        } catch (NullPointerException e) { // Email Auth Number 쿠키가 존재하지 않는다면
             throw new UserInfoAuthJwtException("이메일 인증을 먼저 진행해주세요.");
         } catch (Exception e) {
             throw new UserInfoAuthJwtException("이메일 인증 오류");

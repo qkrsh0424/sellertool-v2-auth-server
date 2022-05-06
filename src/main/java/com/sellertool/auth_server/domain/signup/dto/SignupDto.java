@@ -26,4 +26,6 @@ public class SignupDto {
 
     @NotBlank
     private String email;
+
+    private boolean verifiedEmail;
 }
